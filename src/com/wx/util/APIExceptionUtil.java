@@ -1,4 +1,4 @@
-package com.gw.util;
+package com.wx.util;
 
 import com.mks.api.response.APIException;
 import com.mks.api.response.Response;

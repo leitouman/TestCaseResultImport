@@ -1,4 +1,4 @@
-package com.gw.ui;
+package com.wx.ui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -44,12 +44,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.gw.service.ExcelUtil;
-import com.gw.service.MyRunnable;
-import com.gw.util.APIExceptionUtil;
-import com.gw.util.Constants;
-import com.gw.util.MKSCommand;
 import com.mks.api.response.APIException;
+import com.wx.service.ExcelUtil;
+import com.wx.service.MyRunnable;
+import com.wx.util.APIExceptionUtil;
+import com.wx.util.Constants;
+import com.wx.util.MKSCommand;
+
 import javax.swing.SwingConstants;
 
 public class TestCaseImport extends JFrame {
@@ -59,8 +60,6 @@ public class TestCaseImport extends JFrame {
 	private static final long serialVersionUID = 1L;
 	public static JPanel contentPane;
 	private JTabbedPane tabbedPane;
-	JComboBox<String> comboBox; // 下拉选择导入的类型，导入到那种文档
-	private String importType; // 导入的类型
 	private JTable tableMapper;
 	private JButton backBtn;
 	private JButton nextBtn;
@@ -77,15 +76,9 @@ public class TestCaseImport extends JFrame {
 	private File excelFile;
 	private JTextField testSuiteField;
 	private String testSuiteID;
-	private List<Map<String, Object>> data;
-	private List<Map<String, Object>> realData ;
-	// private ExcelUtil2 excelUtil = new ExcelUtil2();
+	private List<List<Map<String, Object>>> datas;
+	private List<List<Map<String, Object>>> realData ;
 	private ExcelUtil excelUtil = new ExcelUtil();
-	private JComboBox<String> comboBox_1;
-	private static final String EMPTY_IMPORT_TYPE = "Please Select a Type";
-	private static final String FIELD_CONFIG_FILE = "Mapping.xml";
-	private static final List <String> Depts = new ArrayList<String>();
-	public static String DEPT = "";
 	//public static String TOKEN ;
 	/**
 	 * Launch the application.
@@ -113,7 +106,7 @@ public class TestCaseImport extends JFrame {
 		try {
 			String host = TestCaseImport.ENVIRONMENTVAR.get(Constants.MKSSI_HOST);
 			if(host==null || host.length()==0) {
-				host = "galm.com";
+				host = "172.25.4.18";
 			}
 			String portStr = ENVIRONMENTVAR.get(Constants.MKSSI_PORT);
 			Integer port = portStr!=null && !"".equals(portStr)? Integer.valueOf(portStr) : 7001;
@@ -167,20 +160,19 @@ public class TestCaseImport extends JFrame {
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setBounds(8, 8, 834, 322);
 		contentPane.add(tabbedPane);
-
-		comboBox = new JComboBox<String>();
-
+		
+		
 		JPanel panel = new JPanel();
 		panel.setForeground(Color.RED);
 		panel.setToolTipText("Test Suite");
 		tabbedPane.addTab(" Info ", null, panel, null);
 		panel.setLayout(null);
-
+		
 		pathText = new JLabel("<Path to Excel File *.xls>");
-		pathText.setBounds(25, 227, 546, 24);
+		pathText.setBounds(25, 227, 648, 24);
 		pathText.setBorder(BorderFactory.createEtchedBorder());
 		panel.add(pathText);
-
+		
 		JButton browseBtn = new JButton("Browse");
 		browseBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -207,75 +199,53 @@ public class TestCaseImport extends JFrame {
 							testSuiteID = suiteId;
 							testSuiteField.setText(suiteId);
 						}
-					}
-					try {
-						importType = comboBox.getSelectedItem().toString();
-						parseExcel(importType);
-					} catch (Exception e1) {
-						e1.printStackTrace();
+						try {
+							datas = excelUtil.parseExcel(excelFile);
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 					}
 				}
 			}
 		});
-		browseBtn.setBounds(613, 226, 89, 27);
+		browseBtn.setBounds(696, 226, 89, 27);
 		panel.add(browseBtn);
-
-		comboBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-
-			}
-		});
-//		comboBox.setSelectedIndex(0);
-		comboBox.setBounds(170, 33, 401, 42);
-		panel.add(comboBox);
-
-		JLabel lblTestSuite = new JLabel("Document ID   :");
-		lblTestSuite.setBounds(25, 91, 139, 24);
+		
+		JLabel lblTestSuite = new JLabel("Test Suite ID : ");
+		lblTestSuite.setBounds(25, 50, 144, 24);
 		panel.add(lblTestSuite);
-
+		
 		testSuiteField = new JTextField();
-		testSuiteField.setBounds(170, 90, 401, 27);
+		testSuiteField.setBounds(188, 49, 485, 27);
 		panel.add(testSuiteField);
 		testSuiteField.setColumns(10);
-
-		JLabel lblNewLabel = new JLabel("Project       :");
-		lblNewLabel.setBounds(25, 131, 139, 24);
-		panel.add(lblNewLabel);
-
-		JLabel label = new JLabel("*");
-		label.setForeground(Color.RED);
-		label.setBackground(Color.RED);
-		label.setBounds(599, 47, 54, 15);
-		panel.add(label);
-
-		label_1 = new JLabel("*");
-		label_1.setForeground(Color.RED);
-		label_1.setBackground(Color.RED);
-		label_1.setBounds(154, 47, 10, 15);
-		panel.add(label_1);
 		
-				label_2 = new JLabel(
-						"( The project must be fill in while importing new document. Format Example: /BMS/Test1 )");
-				label_2.setVerticalAlignment(SwingConstants.TOP);
-				label_2.setForeground(Color.RED);
-				label_2.setBounds(25, 170, 822, 24);
-				panel.add(label_2);
-
-		label_3 = new JLabel("[First of all, please choose your own department.]");
-		label_3.setForeground(Color.RED);
-		label_3.setBounds(25, 0, 480, 21);
-		panel.add(label_3);
-
-		comboBox_1 = new JComboBox();
-		comboBox_1.setBounds(25, 36, 123, 37);
-		panel.add(comboBox_1);
+		JLabel lblNewLabel = new JLabel("Project       :");
+		lblNewLabel.setBounds(25, 116, 144, 24);
+		panel.add(lblNewLabel);
+		
+		lblTheProject = new JLabel("( The project must be fill in while importing new document. Format Example: /Test1 )");
+		lblTheProject.setVerticalAlignment(SwingConstants.TOP);
+		lblTheProject.setForeground(Color.RED);
+		lblTheProject.setBounds(25, 170, 822, 24);
+		panel.add(lblTheProject);
 		
 		comboBox_2 = new JComboBox();
 		
-		comboBox_2.setBounds(170, 132, 401, 27);
+		comboBox_2.setBounds(188, 115, 485, 27);
 		panel.add(comboBox_2);
 		
-		setFristForPick();
+		JLabel lblNewLabel_1 = new JLabel("*");
+		lblNewLabel_1.setForeground(Color.BLUE);
+		lblNewLabel_1.setBounds(168, 52, 18, 21);
+		panel.add(lblNewLabel_1);
+		
+		JLabel label = new JLabel("*");
+		label.setForeground(Color.BLUE);
+		label.setBounds(168, 118, 18, 21);
+		panel.add(label);
+		Object obj = comboBox_2.getSelectedItem();
 		JPanel panel_1 = new JPanel();
 		tabbedPane.addTab(" Mapping ", null, panel_1, null);
 		panel_1.setLayout(null);
@@ -301,6 +271,7 @@ public class TestCaseImport extends JFrame {
 		textArea = new JTextArea();
 		textArea.setLineWrap(true);
 		scrollPane_1.setViewportView(textArea);
+		project = obj!=null ? obj.toString() : "";
 
 		doneBtn = new JButton("Done");
 		doneBtn.addActionListener(new ActionListener() {
@@ -311,13 +282,6 @@ public class TestCaseImport extends JFrame {
 		doneBtn.setEnabled(false);
 		doneBtn.setBounds(677, 345, 100, 27);
 		contentPane.add(doneBtn);
-		
-		comboBox.addItemListener(new ItemListener(){
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				importType = comboBox.getSelectedItem().toString();
-			}
-		});
 		
 		nextBtn = new JButton("Next");
 		nextBtn.addActionListener(new ActionListener() {
@@ -347,7 +311,6 @@ public class TestCaseImport extends JFrame {
 			setMksConfig();
 			
 			setProjectList();
-			project = comboBox_2.getSelectedItem().toString();
 		} catch (Exception e1) {
 			JOptionPane.showMessageDialog(this, e1.getMessage());
 			e1.printStackTrace();
@@ -355,95 +318,10 @@ public class TestCaseImport extends JFrame {
 		for (int i = 0; i < tabbedPane.getMouseListeners().length; i++) {
 			tabbedPane.removeMouseListener(tabbedPane.getMouseListeners()[i]);
 		}
-	}
-	public void initMksCommand2() {
-		try {
-			String host = TestCaseImport.ENVIRONMENTVAR.get(Constants.MKSSI_HOST);
-			if(host==null || host.length()==0) {
-				host = "10.255.33.191";
-			}
-			cmd = new MKSCommand(host, 7001, "gw00161831", "123456", 4, 16);
-//			cmd.getSession();
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(TestCaseImport.contentPane, "Can not get a connection!", "Message",
-					JOptionPane.WARNING_MESSAGE);
-			TestCaseImport.logger.info("Can not get a connection!");
-			System.exit(0);
-		}
-	}
-
-	public void setFristForPick() throws Exception {
-		try {
-			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-					.parse(ExcelUtil.class.getClassLoader().getResourceAsStream( "Dept" + FIELD_CONFIG_FILE));
-			Element root = doc.getDocumentElement();
-			NodeList deptLists = root.getElementsByTagName("depts");
-			for (int i = 0; i < deptLists.getLength(); i++) {
-				Element deptList = (Element) deptLists.item(i);
-				NodeList  depts = deptList.getElementsByTagName("dept");
-				for (int j = 0; j < depts.getLength(); j++) {
-					Element dept = (Element) depts.item(j);
-					String deptName = dept.getAttribute("name");
-					Depts.add(deptName);
-				}
-			}
-			DEPT = Depts.get(0);
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Could Not Parse XML Config, Please Contant Adminstrator!");
-		}
-		comboBox_1.setModel(new DefaultComboBoxModel<String>(Depts.toArray(new String[Depts.size()])));
-		setValueForPick();
-		try {
-			excelUtil.parsFieldMapping(DEPT, null); 
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
-		comboBox_1.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				DEPT = comboBox_1.getSelectedItem().toString();
-				setValueForPick();
-			}
-		});
-	}
-
-	/**
-	 * Description: 解析Excel数据
-	 * 
-	 * @param importType
-	 * @return
-	 * @throws Exception
-	 */
-	public void parseExcel(String importType) throws Exception {
-		if (importType == null || importType.equals("")) {
-			throw new Exception("importType is null");
-		}
-
-		pathText.setText(excelFile.getAbsolutePath());
-		logger.info("Load excel : " + excelFile.getAbsolutePath());
-		try {
-			data = excelUtil.parseExcel(excelFile, importType);
-			helloText.setText("Success to parse excel!");
-			helloText.setForeground(Color.BLACK);
-			logger.info("Success to parse excel: " + data);
-		} catch (Exception e1) {
-			logger.error("Failed to parse excel!");
-			JOptionPane.showMessageDialog(contentPane, e1.getMessage(), "Failed to parse excel",
-					JOptionPane.ERROR_MESSAGE);
-			helloText.setText("Failed to parse excel!");
-			helloText.setForeground(Color.RED);
-		}
-		
+		excelUtil.parsFieldMapping();
 	}
 
 	public void nextAction(int plus) {
-		//initMksCommand2();
-//		try {
-//			setProjectList();
-//		} catch (APIException e2) {
-//			// TODO Auto-generated catch block
-//			e2.printStackTrace();
-//		}
 		int curIdx = tabbedPane.getSelectedIndex();
 		int maxIdx = tabbedPane.getComponentCount() - 1;
 		int newIdx = curIdx + plus;
@@ -459,11 +337,6 @@ public class TestCaseImport extends JFrame {
 			}
 
 			// 判断是否选择模板类型
-//			importType = comboBox.getSelectedItem().toString(); // 在进入类型是否存在判断时先拿到最新的类型
-			if (EMPTY_IMPORT_TYPE.equals(importType)) {
-				JOptionPane.showConfirmDialog(contentPane, "Please choose the template type!");
-				return;
-			}
 			// 解析Excel
 			testSuiteID = testSuiteField.getText();
 			/*
@@ -504,7 +377,7 @@ public class TestCaseImport extends JFrame {
 				}
 			} else {
 				try {
-					if (!cmd.docIDIsRight( testSuiteID, ExcelUtil.DOC_TYPE_MAP.get(importType)) ) {// 此处要修改，  判断类型
+					if (!cmd.docIDIsRight( testSuiteID, "Test Suite") ) {// 此处要修改，  判断类型
 						JOptionPane.showConfirmDialog(contentPane,
 								"Your input Test Suite ID is not correctly, Please Re-Input It!");
 						return;
@@ -516,31 +389,21 @@ public class TestCaseImport extends JFrame {
 				}
 			}
 
-			if (data == null || data.size() == 0) {
+			if (datas == null || datas.size() == 0) {
 				JOptionPane.showConfirmDialog(contentPane, "Counld not prase excel! Please check the excel format!");
 				return;
-			} 
-			// setFocus(newIdx);
+			}
+			List<List<Map<String, Object>>> dealDatas = excelUtil.dealExcelData(datas);
 			try {
-				String deptment = comboBox_1.getSelectedItem().toString();
-				String realImportType = new String(importType);
-//				if("MCU".equals(deptment)){
-//					realImportType = "MCU Software Unit Test Specification";
-//				}
-				excelUtil.parsFieldMapping(DEPT,realImportType);
 				tableMapper.setModel(new DefaultTableModel(excelUtil.tableFields,
 						new String[] { "Excel Headers", "Integrity Fields" }));
 				Map<String,String> errorRecord = new HashMap<String,String>();
-				realData = excelUtil.checkExcelData(data, errorRecord, realImportType, cmd);
+				realData = excelUtil.checkExcelData(dealDatas, errorRecord, cmd);
 				String checkMessage = errorRecord.get("error");
 				if(checkMessage != null && !"".equals(checkMessage)){
 					JOptionPane.showMessageDialog(this, checkMessage);
 					return;
 				}
-//				else {
-//					// 处理校验完数据    创建  token 
-//					TOKEN = UUID.randomUUID().toString().replaceAll("-", "");
-//				}
 			} catch (APIException e) {
 				APIExceptionUtil.getMsg(e);
 			} catch (Exception e){
@@ -552,9 +415,8 @@ public class TestCaseImport extends JFrame {
 			logger.info("==> into logger panel");
 			// 开始线程导入数据
 			r.cmd = cmd;
-			r.data = realData;
+			r.datas = realData;
 			r.testSuiteId = testSuiteID;
-			r.importType = importType;
 			r.excelUtil = excelUtil;
 			r.project = comboBox_2.getSelectedItem().toString();
 			r.shortTitle = documentTitle;
@@ -626,9 +488,7 @@ public class TestCaseImport extends JFrame {
 	private MyRunnable r = new MyRunnable();
 	private Thread t = new Thread();// 查询线程
 	private JLabelTimerTask j = new JLabelTimerTask();
-	private JLabel label_1;
-	private JLabel label_2;
-	private JLabel label_3;
+	private JLabel lblTheProject;
 	private static JComboBox comboBox_2;
 
 	/**
@@ -654,20 +514,8 @@ public class TestCaseImport extends JFrame {
 		}
 	}
 
-	/**
-	 * 解析配置文件为Pick设置数据
-	 */
-	public void setValueForPick() {
-		List<String> result = new ArrayList<>();
-		result.add(new String(EMPTY_IMPORT_TYPE));
-		try {
-			result.addAll(excelUtil.parsFieldMapping(DEPT,null)); // 获得解析后的集合。
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Could Not Parse XML Config, Please Contant Adminstrator!");
-		}
-		comboBox.setModel(new DefaultComboBoxModel<String>(result.toArray(new String[result.size()])));
-		
-	}
+	
+	@SuppressWarnings("unchecked")
 	public static void setProjectList() throws APIException{
 		List<String> projects = cmd.getProjects(defaultUser);
 		projects.add(0, "Please select a Project");

@@ -1,4 +1,4 @@
-package com.gw.util;
+package com.wx.util;
 
 import javax.swing.JOptionPane;
 

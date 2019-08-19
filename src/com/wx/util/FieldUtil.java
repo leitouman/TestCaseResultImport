@@ -1,4 +1,4 @@
-package com.gw.util;
+package com.wx.util;
 
 //import java.util.ArrayList;
 //import java.util.HashMap;

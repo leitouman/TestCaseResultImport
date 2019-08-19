@@ -1,4 +1,4 @@
-package com.gw.util;
+package com.wx.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
+import com.wx.service.ExcelUtil;
 import com.mks.api.CmdRunner;
 import com.mks.api.Command;
 import com.mks.api.IntegrationPoint;
@@ -365,7 +366,12 @@ public class MKSCommand {
 			if (value==null || value.equals("null")) {
 				value = "";
 			}
-			ol.add(new Option("field", fieldName + "=" + value));
+			Option op = null;
+			if (ExcelUtil.RICH_FIELDS.contains(fieldName)) 
+				op = new Option("richContentField", fieldName + "=" + value);
+			else 
+				op = new Option("field", fieldName + "=" + value);
+			ol.add(op);
 		}
 		cmd.setOptionList(ol);
 		cmd.addSelection(id);
@@ -391,9 +397,9 @@ public class MKSCommand {
 		if(beforeId != null && beforeId.length() > 0 && beforeId.equals("first")){
 			cmd.addOption(new Option("insertLocation", "first"));
 		}
-		else if (beforeId != null && beforeId.length() > 0) {
+		else if (beforeId != null && !"".equals(beforeId) && !"last".equals(beforeId)) {
 			cmd.addOption(new Option("insertLocation", "after:" + beforeId));
-		} else {
+		} else {//last
 			cmd.addOption(new Option("insertLocation", "last"));
 		}
 		cmd.addOption(new Option("Type", type));
@@ -402,7 +408,12 @@ public class MKSCommand {
 			if(value==null || value.equals("null")){
 				value = "";
 			}
-			cmd.addOption(new Option("field", entry.getKey() + "=" + value));
+			Option op = null;
+			if (ExcelUtil.RICH_FIELDS.contains(entry.getKey())) 
+				op = new Option("richContentField", entry.getKey() + "=" + value);
+			else 
+				op = new Option("field", entry.getKey() + "=" + value);
+			cmd.addOption(op);
 		}
 		currentCommand = Arrays.toString(cmd.toStringArray());
 		Response res = null;
@@ -436,7 +447,7 @@ public class MKSCommand {
 				if(value==null || value.equals("null")){
 					value = "";
 				}
-				cmd.addOption(new Option("field", entrty.getKey() + "=" + value));
+				cmd.addOption(new Option("richContentField", entrty.getKey() + "=" + value));
 			}
 		}
 		Response res = mksCmdRunner.execute(cmd);
@@ -662,8 +673,8 @@ public class MKSCommand {
 	public List<String> getProjects(String user) throws APIException{
 		List<String> projects = new ArrayList<String>();
 		Command cmd = new Command("im", "issues");
-		cmd.addOption(new Option("fields","Project,ProjectMembers"));
-		String query = "((field[Type]=Project) and (field[ProjectMembers] = " + user + " ))";
+		cmd.addOption(new Option("fields","Project"));
+		String query = "((field[Type]=Project))";
 		cmd.addOption(new Option("queryDefinition",query));
 		Response res = mksCmdRunner.execute(cmd);
 		if (res != null) {
@@ -694,5 +705,73 @@ public class MKSCommand {
 			allCategories.add(cate);
 		}
 		return allCategories;
+	}
+	
+	/**
+	 * Description 创建测试结果
+	 * @param sessionID
+	 * @param verdict
+	 * @param annotation
+	 * @param caseID
+	 * @return
+	 */
+	public boolean createResult(String sessionID, String verdict, String annotation, String caseID){
+		Command cmd = new Command("tm", "createresult");
+		cmd.addOption(new Option("sessionID",sessionID));
+		cmd.addOption(new Option("verdict",verdict));
+		if(annotation != null && !"".equals(annotation)){
+			cmd.addOption(new Option("annotation",annotation));
+		}
+		cmd.addSelection(caseID);
+		try{
+			Response res = mksCmdRunner.execute(cmd);
+		}catch(Exception e){
+			return false;
+		}
+		return true;
+	}
+	
+	
+	/**
+	 * Description 校验类型是否正确
+	 * @return
+	 * @throws APIException
+	 */
+	public String checkIssueType(List<String> ids, String type, String checkState) throws APIException{
+		if(ids == null || ids.isEmpty())
+			return "";
+		Command cmd = new Command("im", "issues");
+		cmd.addOption(new Option("fields","Type,ID,State"));
+		SelectionList list = new SelectionList();
+		for(String id : ids){
+			list.add(id);
+		}
+		cmd.setSelectionList(list);
+		Response res = mksCmdRunner.execute(cmd);
+		StringBuffer typeErrorMessage = new StringBuffer("");
+		StringBuffer stateErrorMessage = new StringBuffer("");
+		boolean typeError = false;
+		boolean stateError = false;
+		if (res != null) {
+			WorkItemIterator it = res.getWorkItems();
+			while (it.hasNext()) {
+				WorkItem wi = it.next();
+				String actualType = wi.getField("Type").getValueAsString();
+				String actualState = wi.getField("State").getValueAsString();
+				String id = wi.getId();
+				if(!actualType.equals(type)){
+					typeErrorMessage.append(id + ";");
+					typeError = true;
+				}else if(!actualState.equals(checkState)){
+					stateErrorMessage.append(id + ";");
+					stateError = true;
+				}
+			}
+		}
+		if(typeError)
+			typeErrorMessage.append(" is not [ " + type + " ] Type. Please check it. \n");
+		if(stateError)
+			stateErrorMessage.append("is not in [" + checkState + " ] state. Please Check it");
+		return typeErrorMessage.toString() + stateErrorMessage.toString();
 	}
 }

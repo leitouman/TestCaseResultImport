@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.gw.util;
+package com.wx.util;
 
 public class Constants {
 

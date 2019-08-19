@@ -1,4 +1,4 @@
-package com.gw.service;
+package com.wx.service;
 
 public class PickVO {
 

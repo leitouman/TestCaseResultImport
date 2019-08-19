@@ -1,4 +1,4 @@
-package com.gw.service;
+package com.wx.service;
 
 import java.io.IOException;
 import java.util.List;
@@ -6,15 +6,15 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 
-import com.gw.ui.TestCaseImport;
-import com.gw.util.MKSCommand;
+import com.wx.ui.TestCaseImport;
+import com.wx.util.MKSCommand;
 
 public class MyRunnable implements Runnable {
 	public MKSCommand cmd;
 	public ExcelUtil excelUtil;
 	public String importType;
 	public String testSuiteId;
-	public List<Map<String,Object>> data;
+	public List<List<Map<String,Object>>> datas;
 	public String project;
 	public String shortTitle;
 	public MyRunnable() {
@@ -26,7 +26,7 @@ public class MyRunnable implements Runnable {
 		try {
 			TestCaseImport.logger.info("===============Start to import Test Case==============");
 		//	if( TestCaseImport.TOKEN != null ) {
-				excelUtil.startImport(data, cmd, importType,shortTitle,project, testSuiteId);
+				excelUtil.startImport(datas, cmd, importType,shortTitle,project, testSuiteId);
 		//	}
 			JOptionPane.showMessageDialog(TestCaseImport.contentPane, "Done", "Success", JOptionPane.INFORMATION_MESSAGE);
 		} catch (Exception e) {
