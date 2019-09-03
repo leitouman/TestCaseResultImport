@@ -794,17 +794,6 @@ public class ExcelUtil {
 						if(steps instanceof List){
 							List<Map<String, String>> currentSteps = (List<Map<String, String>> )steps;
 							if(!currentSteps.isEmpty()) {//Test Case包含有 Test Step信息
-								for(Map<String, String> stepMap : currentSteps){
-									for(String header : stepFields){
-										Map<String, String> fieldConfig = headerConfig.get(header);
-										String fieldVal = fieldConfig.get("field");
-										if(fieldVal != null){
-											String value = stepMap.get(header);
-											stepMap.remove(header);
-											stepMap.put(fieldVal, value);
-										}
-									}
-								}
 								newMap.put(TEST_STEP, currentSteps);
 							}
 						}
@@ -850,7 +839,7 @@ public class ExcelUtil {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public void startImport(List<List<Map<String, Object>>> datas, MKSCommand cmd, String importType,String shortTitle, String project, String testSuiteID) throws Exception {
+	public void startImport(List<List<Map<String, Object>>> datas, MKSCommand cmd, String importType,String shortTitle, String project, String testSuiteID) throws APIException {
 		// 删除Token
 		// TestCaseImport.TOKEN = null;
 		// 下面List用于收集操作信息，用于统计
@@ -924,14 +913,18 @@ public class ExcelUtil {
 				String beforeId = "last";//涉及结构
 				parentId = testSuiteID;
 				String sequenceStr = (String)testCaseData.get(SEQUENCE_FIELD);
-				String parentSeqence = null;
+				String parentSequence = null;
 				if(sequenceStr != null && !"".equals(sequenceStr) ){
 					if(sequenceStr.contains(SPERATOR)){
-						parentSeqence = sequenceStr.substring(0, sequenceStr.lastIndexOf(SPERATOR));
-						parentId = structureRecord.get(parentSeqence);
+						parentSequence = sequenceStr.substring(0, sequenceStr.lastIndexOf(SPERATOR));
+						parentId = structureRecord.get(parentSequence);
+						if(parentId == null){
+							parentSequence = parentSequence.substring(0, parentSequence.lastIndexOf(SPERATOR));
+							parentId = structureRecord.get(parentSequence);
+						}
 					}
-					if(parentSeqence!=null)
-						beforeId = structureRecord.get(parentSeqence + CHILD);
+					if(parentSequence!=null)
+						beforeId = structureRecord.get(parentSequence + CHILD);
 					if(beforeId == null)
 						beforeId = "last";
 				}
@@ -944,12 +937,12 @@ public class ExcelUtil {
 				}
 				// 4. 记录beforeID及结构
 				structureRecord.put(sequenceStr, caseId);
-				if(parentSeqence != null )
-					structureRecord.put(parentSeqence + CHILD, caseId);
+				if(parentSequence != null )
+					structureRecord.put(parentSequence + CHILD, caseId);
 				// 5. 导入测试结果
 				dealTestResults(resultList, cmd, caseId);
 
-				TestCaseImport.showProgress(1, 1, caseNum, totalCaseNum);
+				TestCaseImport.showProgress(sheet + 1, datas.size(), caseNum, totalCaseNum);
 			}
 			TestCaseImport.logger.info("Success to Import sheet : " + (sheet + 1) + ". " );
 		}
@@ -1010,7 +1003,7 @@ public class ExcelUtil {
 	 */
 	public String getTestCase(String parentId, Map<String, String> newTestCaseData, Map<String, Object> caseMap,
 			String project, MKSCommand cmd, String caseId, String beforeId, List<String> caseCreate,
-			List<String> caseCreateF, List<String> caseUpdate, List<String> caseUpdateF, String importType) throws Exception {
+			List<String> caseCreateF, List<String> caseUpdate, List<String> caseUpdateF, String importType) throws APIException {
 		
 		logger.info("Data Of " + CONTENT_TYPE + " ID [" + caseId + "]");
 		// 需修改

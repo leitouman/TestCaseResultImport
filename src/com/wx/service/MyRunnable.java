@@ -6,13 +6,15 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 
+import com.mks.api.response.APIException;
 import com.wx.ui.TestCaseImport;
+import com.wx.util.APIExceptionUtil;
 import com.wx.util.MKSCommand;
 
 public class MyRunnable implements Runnable {
 	public MKSCommand cmd;
 	public ExcelUtil excelUtil;
-	public String importType;
+	public String importType = "Test Case";
 	public String testSuiteId;
 	public List<List<Map<String,Object>>> datas;
 	public String project;
@@ -29,6 +31,9 @@ public class MyRunnable implements Runnable {
 				excelUtil.startImport(datas, cmd, importType,shortTitle,project, testSuiteId);
 		//	}
 			JOptionPane.showMessageDialog(TestCaseImport.contentPane, "Done", "Success", JOptionPane.INFORMATION_MESSAGE);
+		} catch (APIException e) {
+			TestCaseImport.logger.error(APIExceptionUtil.getMsg(e));
+			JOptionPane.showMessageDialog(TestCaseImport.contentPane, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(TestCaseImport.contentPane, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		} finally {

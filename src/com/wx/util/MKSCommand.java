@@ -206,7 +206,7 @@ public class MKSCommand {
 	 * @return
 	 * @throws APIException
 	 */
-	public List<Map<String, String>> getItemByIds(List<String> ids, List<String> fields) throws Exception {
+	public List<Map<String, String>> getItemByIds(List<String> ids, List<String> fields) throws APIException {
 		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
 		Command cmd = new Command("im", "issues");
 		MultiValue mv = new MultiValue();
@@ -247,7 +247,7 @@ public class MKSCommand {
 		} catch (APIException e) {
 			// success = false;
 			logger.error(APIExceptionUtil.getMsg(e));
-			throw new Exception(APIExceptionUtil.getMsg(e));
+			throw e;
 		}
 		return list;
 	}

@@ -195,6 +195,7 @@ public class TestCaseImport extends JFrame {
 						helloText.setForeground(Color.RED);
 					} else {
 						String suiteId = path.substring(path.lastIndexOf("-") + 1, path.lastIndexOf("."));
+						pathText.setText(path);
 						if (suiteId.matches("[0-9]*")) {
 							testSuiteID = suiteId;
 							testSuiteField.setText(suiteId);
