@@ -32,6 +32,7 @@ import org.xml.sax.SAXException;
 
 import com.mks.api.response.APIException;
 import com.wx.ui.TestCaseImport;
+import com.wx.util.APIExceptionUtil;
 import com.wx.util.ExceptionUtil;
 import com.wx.util.MKSCommand;
 
@@ -1032,6 +1033,7 @@ public class ExcelUtil {
 				TestCaseImport.showLogger(" \tSuccess to create "+ CONTENT_TYPE +" : " + caseId);
 			} catch (APIException e) {
 				caseCreateF.add(caseId);
+				logger.error(APIExceptionUtil.getMsg(e));
 				TestCaseImport.showLogger(" \tFailed to create "+ CONTENT_TYPE +" : " + caseId);
 				logger.error("Failed to create test case : " + ExceptionUtil.catchException(e));
 			}
@@ -1070,6 +1072,7 @@ public class ExcelUtil {
 				TestCaseImport.showLogger(" \tSuccess to update Test Case : " + caseId);
 			} catch (APIException e) {
 				caseUpdateF.add(caseId);
+				logger.error(APIExceptionUtil.getMsg(e));
 				TestCaseImport.showLogger(" \tFailed to update Test Case : " + caseId);
 				logger.error("Failed to edit test case : " + ExceptionUtil.catchException(e));
 			}
@@ -1142,6 +1145,7 @@ public class ExcelUtil {
 						TestCaseImport.showLogger(" \t\tSuccess to create Test Step " + i + ", " + stepId);
 					} catch (APIException e) {
 						stepCreateF.add(stepId);
+						logger.error(APIExceptionUtil.getMsg(e));
 						TestCaseImport.showLogger(" \t\tFailed to create Test Step");
 						logger.error("Failed to create test step : " + ExceptionUtil.catchException(e));
 					}
@@ -1152,6 +1156,7 @@ public class ExcelUtil {
 						TestCaseImport.showLogger(" \t\tSuccess to update Test Step " + i + ", " + stepId);
 					} catch (APIException e) {
 						stepUpdateF.add(stepId);
+						logger.error(APIExceptionUtil.getMsg(e));
 						TestCaseImport.showLogger(" \t\tFailed to update Test Step " + i + ", " + stepId);
 						logger.error("Failed to edit test step : " + ExceptionUtil.catchException(e));
 					}

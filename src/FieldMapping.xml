@@ -12,6 +12,7 @@
 		<excelField  name="Sub-Sub-Sequence"  		type="Test Case"  			field="-"	/>
 		<excelField  name="Summary"  				type="Test Case"  			field="Summary"				/>
 		<excelField  name="Text"  					type="Test Case"  			field="Text"				/>
+		<excelField  name="Software Detail Design Related"  					type="Test Case"  			field="Validates"				/>
 		<excelField  name="Test Step ID"  			type="Test Step"  			field="ID"					/>
 		<excelField  name="Description"  			type="Test Step"  			field="Description"			/>
 		<excelField  name="Expected Results"  		type="Test Case"  			field="Expected Results"	/>

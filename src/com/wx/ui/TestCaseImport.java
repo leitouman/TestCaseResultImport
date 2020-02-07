@@ -106,7 +106,7 @@ public class TestCaseImport extends JFrame {
 		try {
 			String host = TestCaseImport.ENVIRONMENTVAR.get(Constants.MKSSI_HOST);
 			if(host==null || host.length()==0) {
-				host = "172.25.4.18";
+				host = "192.168.6.130";
 			}
 			String portStr = ENVIRONMENTVAR.get(Constants.MKSSI_PORT);
 			Integer port = portStr!=null && !"".equals(portStr)? Integer.valueOf(portStr) : 7001;

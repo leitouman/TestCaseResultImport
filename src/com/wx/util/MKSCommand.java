@@ -14,6 +14,7 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import com.wx.service.ExcelUtil;
+import com.wx.ui.TestCaseImport;
 import com.mks.api.CmdRunner;
 import com.mks.api.Command;
 import com.mks.api.IntegrationPoint;
@@ -725,7 +726,8 @@ public class MKSCommand {
 		cmd.addSelection(caseID);
 		try{
 			Response res = mksCmdRunner.execute(cmd);
-		}catch(Exception e){
+		}catch(APIException e){
+			TestCaseImport.logger.error(APIExceptionUtil.getMsg(e));
 			return false;
 		}
 		return true;
